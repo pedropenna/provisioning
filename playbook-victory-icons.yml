@@ -1,0 +1,21 @@
+---
+- name: Install Victory Icon Theme
+  hosts: localhost
+  become: false
+  tasks:
+    - name: Ensure ~/.icons directory exists
+      file:
+        path: "{{ ansible_env.HOME }}/.icons"
+        state: directory
+        mode: '0755'
+
+    - name: Clone Victory Icon Theme repository
+      git:
+        repo: 'https://gitlab.com/newhoa/victory-icon-theme.git'
+        dest: "{{ ansible_env.HOME }}/.icons/Victory"
+        version: 'master'
+        update: yes
+
+    - name: Notify user about installation
+      debug:
+        msg: "Victory Icon Theme has been installed in {{ ansible_env.HOME }}/.icons/Victory"

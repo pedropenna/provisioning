@@ -1,0 +1,78 @@
+---
+- name: Install zsh and configure oh-my-zsh with powerlevel10k on Manjaro
+  hosts: all
+  become: yes
+
+  vars:
+    oh_my_zsh_install_script: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+    powerlevel10k_repo: "https://github.com/romkatv/powerlevel10k.git"
+    zsh_plugins: ["git", "z"]
+
+  tasks:
+    - name: Ensure zsh is installed
+      pacman:
+        name: zsh
+        state: present
+        update_cache: yes
+
+    - name: Change default shell to zsh
+      user:
+        name: "{{ ansible_user }}"
+        shell: /usr/bin/zsh
+
+    - name: Install Oh-My-Zsh
+      shell: "sh -c \"$(curl -fsSL {{ oh_my_zsh_install_script }})\" || true"
+      args:
+        creates: "/home/{{ ansible_user }}/.oh-my-zsh"
+      become: no
+      environment:
+        ZSH: "/home/{{ ansible_user }}/.oh-my-zsh"
+
+    - name: Clone Powerlevel10k theme
+      git:
+        repo: "{{ powerlevel10k_repo }}"
+        dest: "/home/{{ ansible_user }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        version: master
+      become: no
+
+    - name: Set ZSH_THEME to powerlevel10k in .zshrc
+      lineinfile:
+        path: "/home/{{ ansible_user }}/.zshrc"
+        regexp: '^ZSH_THEME='
+        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+      become: no
+
+    - name: Add plugins to .zshrc
+      lineinfile:
+        path: "/home/{{ ansible_user }}/.zshrc"
+        regexp: '^plugins='
+        line: 'plugins=({{ zsh_plugins | join(" ") }})'
+      become: no
+
+    - name: Ensure Powerlevel10k configuration
+      blockinfile:
+        path: "/home/{{ ansible_user }}/.zshrc"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+          # Initialization code that may require console input (password prompts, [y/n]
+          # confirmations, etc.) must go above this block; everything else may go below.
+          if [[ -r ~/.p10k.zsh ]]; then
+            source ~/.p10k.zsh
+          fi
+      become: no
+
+    - name: Create a minimal .p10k.zsh if it doesn't exist
+      copy:
+        dest: "/home/{{ ansible_user }}/.p10k.zsh"
+        content: |
+          POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+      become: no
+
+    - name: Ensure proper ownership of the home directory
+      file:
+        path: "/home/{{ ansible_user }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: yes

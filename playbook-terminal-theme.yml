@@ -1,0 +1,171 @@
+---
+- name: Download and apply the Mariana theme for the terminal
+  hosts: all
+  become: yes
+
+  vars:
+    ansible_user: "{{ ansible_user }}"
+    theme_url: "https://raw.githubusercontent.com/nthirtyone/mariana-scheme/master/mariana.theme"
+    theme_path: "/home/{{ ansible_user }}/.local/share/xfce4/terminal/colorschemes/mariana.theme"
+    xfce4_terminal_xml_path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+    mariana_palette: "#343d46;#ec5f67;#99c794;#f97b58;#6699cc;#c594c5;#5fb3b3;#a7adba;#4a5560;#f67c82;#c6e7c3;#f9ae57;#92bae3;#e1bae1;#8bd6d7;#d5dee9"
+
+  tasks:
+    - name: Ensure required directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      with_items:
+        - "/home/{{ ansible_user }}/.local/share"
+        - "/home/{{ ansible_user }}/.local/share/xfce4"
+        - "/home/{{ ansible_user }}/.local/share/xfce4/terminal"
+        - "/home/{{ ansible_user }}/.local/share/xfce4/terminal/colorschemes"
+
+    - name: Download the Mariana theme
+      get_url:
+        url: "{{ theme_url }}"
+        dest: "{{ theme_path }}"
+        mode: '0644'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Ensure the xfce4-terminal.xml file exists
+      stat:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+      register: xfce4_terminal_file
+
+    - name: Backup the xfce4-terminal.xml file
+      copy:
+        src: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        dest: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml.bak"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update background-darkness value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='background-darkness']"
+        value: "0.0"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update misc-default-geometry value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='misc-default-geometry']"
+        value: "174x60"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-foreground value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-foreground']"
+        value: "#ffffff"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-background value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-background']"
+        value: "#000000"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-background-vary value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-background-vary']"
+        value: "false"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-cursor-foreground value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-cursor-foreground']"
+        value: ""
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-cursor value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-cursor']"
+        value: ""
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-cursor-use-default value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-cursor-use-default']"
+        value: "true"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-selection value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-selection']"
+        value: ""
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-selection-background value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-selection-background']"
+        value: ""
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-selection-use-default value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-selection-use-default']"
+        value: "true"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-bold value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-bold']"
+        value: ""
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-bold-use-default value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-bold-use-default']"
+        value: "true"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-palette value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-palette']"
+        value: "#000000;#cc0000;#4e9a06;#c4a000;#3465a4;#75507b;#06989a;#d3d7cf;#555753;#ef2929;#8ae234;#fce94f;#739fcf;#ad7fa8;#34e2e2;#eeeeec"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-bold-is-bright value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-bold-is-bright']"
+        value: "true"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists
+
+    - name: Update color-use-theme value in xfce4-terminal.xml
+      xml:
+        path: "/home/{{ ansible_user }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml"
+        xpath: "/channel/property[@name='color-use-theme']"
+        value: "false"
+        attribute: "value"
+      when: xfce4_terminal_file.stat.exists

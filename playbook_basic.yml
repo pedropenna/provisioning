@@ -1,0 +1,136 @@
+---
+- name: playbook_core.yml - archlinux base setup
+  hosts: all
+  become: yes
+
+  tasks:
+
+# ARCH FULL UPDATE  ----------------------------------------------------------
+
+    - name: update arch
+      pacman:
+        update_cache: yes
+        upgrade: yes
+
+# INSTALL VARIOUS PACKAGES  --------------------------------------------------
+
+    - name: install bunch of packages
+      pacman:
+        update_cache: yes
+        name:
+          - git                     # to clone github repos
+          - curl                    # download utility
+          - wget                    # download utility
+          - rsync                   # copy utility
+          - htop                    # resource monitor
+          - emacs
+          - vim
+          - keepassxc
+          - fasd
+          - the_silver_searcher
+          - tmux
+          - xfce4-clipman-plugin
+          - syncthing
+          - yay
+
+    - name: enable syncthing
+      shell: "systemctl enable syncthing@{{ ansible_user }}.service"
+
+    - name: start syncthing
+      shell: "systemctl start syncthing@{{ ansible_user }}.service"
+
+# SYSTEM SETTINGS CHANGES ----------------------------------------------------
+
+    - name: pacman - enable color
+      lineinfile:
+        path: /etc/pacman.conf
+        regexp: '^#Color$'
+        line: 'Color'
+
+    - name: pacman - enable and increase ParallelDownloads
+      lineinfile:
+        path: /etc/pacman.conf
+        regexp: '#ParallelDownloads = 5'
+        line: 'ParallelDownloads = 10'
+
+    - name: fstab change relatime to noatime
+      replace:
+        path: /etc/fstab
+        regexp: 'relatime'
+        replace: 'noatime'
+
+    - name: change number of failed logins that triger 10min lockout
+      lineinfile:
+        path: /etc/security/faillock.conf
+        regexp: '^# deny = 3$'
+        line: 'deny = 10'
+
+    - name: enable members of wheel group to sudo
+      lineinfile:
+        path: /etc/sudoers.d/01_wheel_allow_sudo
+        state: present
+        line: "%wheel ALL=(ALL:ALL) ALL"
+        validate: /usr/sbin/visudo -cf %s
+        create: yes
+
+# USERS PERMISSIONS  ---------------------------------------------------------
+
+    - name: add the user to the root group
+      user:
+        name: "{{ ansible_user }}"
+        groups: root
+        append: yes
+
+    - name: disable need for sudo password for the current user
+      lineinfile:
+        path: "/etc/sudoers.d/02_no_pswd_for_{{ ansible_env.SUDO_UID }}"
+        state: present
+        line: "{{ ansible_user }} ALL=(ALL:ALL) NOPASSWD: ALL"
+        validate: /usr/sbin/visudo -cf %s
+        create: yes
+
+# SSH ------------------------------------------------------------------------
+
+    - name: install ssh
+      pacman:
+        name:
+          - openssh
+
+    - name: enable and start ssh service
+      systemd:
+        name: sshd
+        enabled: yes
+        state: started
+
+# ARCHLINUX-KEYRING WEEKLY UPDATE  -------------------------------------------
+
+    - name: archlinux-keyring - enable weekly update
+      systemd:
+        name: archlinux-keyring-wkd-sync.timer
+        enabled: yes
+        state: started
+
+# SSD TRIM SCHEDULED  --------------------------------------------------------
+
+    - name: install util-linux
+      pacman:
+        name:
+          - util-linux
+
+    - name: enable and start weekly ssd disks trim using fstrim timer
+      systemd:
+        name: fstrim.timer
+        enabled: yes
+        state: started
+
+# SETUP vim TEXT EDITOR  ---------------------------------------------------
+
+    - name: set default editor in .bashrc
+      become: no
+      blockinfile:
+        path: ~/.bashrc
+        block: |
+          export EDITOR=vim
+          export VISUAL=vim
+
+#  ---------------------------------------------------------------------------

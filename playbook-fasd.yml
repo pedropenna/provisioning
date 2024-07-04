@@ -1,0 +1,45 @@
+---
+- name: Install Fasd and configure it in zsh
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Ensure necessary packages are installed
+      package:
+        name:
+          - git
+          - zsh
+          - make
+          - gcc
+          - binutils
+        state: present
+
+    - name: Clone the Fasd repository
+      git:
+        repo: 'https://github.com/clvv/fasd.git'
+        dest: '/usr/local/src/fasd'
+        version: 'master'
+
+    - name: Install Fasd
+      shell: |
+        cd /usr/local/src/fasd
+        make install
+      args:
+        creates: /usr/local/bin/fasd
+
+    - name: Ensure zsh configuration file exists
+      file:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        state: touch
+
+    - name: Configure Fasd in zsh
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        line: |
+          # Initialize fasd
+          eval "$(fasd --init auto)"
+        state: present
+
+    - name: Source the updated zsh configuration
+      shell: source {{ ansible_env.HOME }}/.zshrc
+      args:
+        executable: /bin/zsh

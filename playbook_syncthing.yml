@@ -1,0 +1,33 @@
+---
+- name: playbook_syncthing.yml - archlinux synct setup
+  hosts: all
+  become: yes
+
+  tasks:
+    
+
+# INSTALL VARIOUS PACKAGES  --------------------------------------------------
+
+    - name: install bunch of packages
+      pacman:
+        update_cache: yes
+        name:
+          - git                     # to clone github repos
+          - curl                    # download utility
+          - wget                    # download utility
+          - rsync                   # copy utility
+          - htop                    # resource monitor
+          - emacs
+          - vim
+          - keepassxc
+          - fasd
+          - the_silver_searcher
+          - tmux
+          - xfce4-clipman-plugin
+          - syncthing
+
+    - name: enable syncthing
+      shell: "systemctl enable syncthing@{{ ansible_user }}.service"
+
+    - name: start syncthing
+      shell: "systemctl start syncthing@{{ ansible_user }}.service"

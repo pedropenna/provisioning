@@ -1,0 +1,33 @@
+---
+- name: Configure Keyboard Layout Autostart in XFCE
+  hosts: localhost
+  tasks:
+    - name: Create autostart directory if it doesn't exist
+      file:
+        path: "{{ ansible_env.HOME }}/.config/autostart"
+        state: directory
+        mode: '0755'
+
+    - name: Create the setxkbmap.sh script
+      copy:
+        dest: "{{ ansible_env.HOME }}/.config/autostart/setxkbmap.sh"
+        content: |
+          #!/bin/bash
+          setxkbmap -layout us -variant mac -option ctrl:nocaps -option lv3:lwin_switch
+        mode: '0755'
+
+    - name: Create the setxkbmap.desktop file
+      copy:
+        dest: "{{ ansible_env.HOME }}/.config/autostart/setxkbmap.desktop"
+        content: |
+          [Desktop Entry]
+          Type=Application
+          Exec={{ ansible_env.HOME }}/.config/autostart/setxkbmap.sh
+          Hidden=false
+          NoDisplay=false
+          X-GNOME-Autostart-enabled=true
+          Name[en_US]=Set Keyboard Layout
+          Name=Set Keyboard Layout
+          Comment[en_US]=Set custom keyboard layout at startup
+          Comment=Set custom keyboard layout at startup
+        mode: '0644'
