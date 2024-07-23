@@ -1,0 +1,30 @@
+---
+- name: Install PlantUML on Manjaro
+  hosts: all
+  become: yes
+  vars:
+    user_home: "/home/{{ ansible_user_id }}"
+
+  tasks:
+    - name: Update the pacman package database
+      pacman:
+        update_cache: yes
+
+    - name: Install Graphviz (required by PlantUML)
+      pacman:
+        name: graphviz
+        state: present
+
+    - name: Download PlantUML jar file
+      get_url:
+        url: "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"
+        dest: "{{ user_home }}/plantuml.jar"
+        mode: '0755'
+
+    - name: Verify PlantUML installation
+      command: "{{ user_home }}/plantuml -version"
+      register: result
+
+    - name: Display PlantUML version
+      debug:
+        msg: "{{ result.stdout }}"

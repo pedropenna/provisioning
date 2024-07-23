@@ -28,6 +28,7 @@
           - keepassxc
           - fasd
           - the_silver_searcher
+          - ripgrep
           - tmux
           - xfce4-clipman-plugin
           - syncthing
