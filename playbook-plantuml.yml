@@ -3,7 +3,7 @@
   hosts: all
   become: yes
   vars:
-    user_home: "/home/{{ ansible_user_id }}"
+    user_home: "/home/{{ ansible_env.SUDO_USER }}"
 
   tasks:
     - name: Update the pacman package database
@@ -15,16 +15,17 @@
         name: graphviz
         state: present
 
-    - name: Download PlantUML jar file
+    - name: Ensure the destination directory exists
+      file:
+        path: "{{ user_home }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_env.SUDO_USER }}"
+        group: "{{ ansible_env.SUDO_USER }}"
+
+    - name: Download PlantUML jar file as the non-root user
+      become: no
       get_url:
-        url: "http://sourceforge.net/projects/plantuml/files/plantuml.jar/download"
+        url: "https://github.com/plantuml/plantuml/releases/download/v1.2024.6/plantuml.jar"
         dest: "{{ user_home }}/plantuml.jar"
         mode: '0755'
-
-    - name: Verify PlantUML installation
-      command: "{{ user_home }}/plantuml -version"
-      register: result
-
-    - name: Display PlantUML version
-      debug:
-        msg: "{{ result.stdout }}"
