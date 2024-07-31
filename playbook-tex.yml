@@ -1,0 +1,30 @@
+---
+- name: Install pdflatex and additional fonts on Manjaro
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update package list
+      pacman:
+        update_cache: yes
+        
+    - name: Install texlive-core
+      pacman:
+        name: texlive-core
+        state: present
+
+    - name: Install additional TeX Live packages
+      pacman:
+        name:
+          - texlive-fontsextra
+          - texlive-science
+          - texlive-latexextra
+          - texlive-pictures
+        state: present
+        
+    - name: Verify pdflatex installation
+      command: pdflatex --version
+      register: pdflatex_version
+
+    - name: Display pdflatex version
+      debug:
+        msg: "pdflatex version: {{ pdflatex_version.stdout }}"
