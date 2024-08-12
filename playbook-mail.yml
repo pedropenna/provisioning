@@ -1,0 +1,21 @@
+---
+- name: Mail
+  hosts: all
+  become: yes
+  vars:
+    user_home: "/home/{{ ansible_env.SUDO_USER }}"
+
+  tasks:
+    - name: Update the pacman package database
+      pacman:
+        update_cache: yes
+
+    - name: Install sync tool
+      pacman:
+        name: mbsync
+        state: present
+
+    - name: Install mu
+      pacman:
+        name: mu
+        state: present
