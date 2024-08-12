@@ -19,6 +19,7 @@
           - texlive-science
           - texlive-latexextra
           - texlive-pictures
+          - texlive-plaingeneric
         state: present
         
     - name: Verify pdflatex installation
