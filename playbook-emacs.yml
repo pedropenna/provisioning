@@ -1,0 +1,26 @@
+---
+- name: Emacs goodies
+  hosts: all
+  become: yes
+  vars:
+    user_home: "/home/{{ ansible_env.SUDO_USER }}"
+
+  tasks:
+    - name: Update the pacman package database
+      pacman:
+        update_cache: yes
+
+    - name: Install pandoc
+      pacman:
+        name: pandoc
+        state: present
+
+    - name: Install w3m browser
+      pacman:
+        name: w3m
+        state: present
+
+    - name: Install GNU plot
+      pacman:
+        name: gnuplot
+        state: present
